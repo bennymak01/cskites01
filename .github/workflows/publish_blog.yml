@@ -8,6 +8,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -16,7 +18,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: pip install markdown
+        run: pip install markdown beautifulsoup4
       - name: Run publishing script
         run: python publish_posts.py
       - name: Commit and push changes
