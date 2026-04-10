@@ -1,23 +1,33 @@
 import os
 import markdown
 import datetime
+import shutil
 from bs4 import BeautifulSoup
 
 def publish_posts():
     """
-    讀取 posts 目錄下的所有 .md 文件，將其轉換為 HTML 並更新 index.html。
+    讀取 _drafts 目錄下的所有 .md 文件，將其轉換為 HTML 並更新 index.html。
+    發布後將文件移動到 posts 目錄作為存檔。
     """
-    print("正在檢查是否有新的文章需要發布...")
+    print("正在檢查是否有新的草稿需要發布...")
     
-    if not os.path.exists('posts'):
-        os.makedirs('posts')
-        print("已創建 posts 目錄。")
+    drafts_dir = '_drafts'
+    posts_dir = 'posts'
+    
+    if not os.path.exists(drafts_dir):
+        os.makedirs(drafts_dir)
+        print(f"已創建 {drafts_dir} 目錄。")
         return
 
-    md_files = [f for f in os.listdir('posts') if f.endswith('.md')]
+    if not os.path.exists(posts_dir):
+        os.makedirs(posts_dir)
+        print(f"已創建 {posts_dir} 目錄。")
+
+    # 獲取所有待發布的 markdown 文件（排除 .gitkeep）
+    md_files = [f for f in os.listdir(drafts_dir) if f.endswith('.md')]
     
     if not md_files:
-        print("沒有發現新的 Markdown 文章。")
+        print("沒有發現新的草稿文章。")
         return
 
     # 讀取現有的 index.html
@@ -33,9 +43,12 @@ def publish_posts():
 
     for md_file in md_files:
         post_id = md_file.replace('.md', '')
-        print(f"正在處理: {md_file}")
+        draft_path = os.path.join(drafts_dir, md_file)
+        post_path = os.path.join(posts_dir, md_file)
         
-        with open(os.path.join('posts', md_file), 'r', encoding='utf-8') as f:
+        print(f"正在處理草稿: {md_file}")
+        
+        with open(draft_path, 'r', encoding='utf-8') as f:
             text = f.read()
             # 獲取第一行作為標題
             lines = text.split('\n')
@@ -75,6 +88,10 @@ def publish_posts():
                 new_section.append(element)
             
             main_content.append(new_section)
+
+        # 移動文件到 posts 目錄作為存檔
+        shutil.move(draft_path, post_path)
+        print(f"已將 {md_file} 移動到 {posts_dir} 目錄。")
 
     # 保存更新後的 index.html
     with open('index.html', 'w', encoding='utf-8') as f:
